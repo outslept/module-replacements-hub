@@ -3,6 +3,7 @@
   padding: clamp(1rem, 2.5vw, 1.5rem);
   transition: var(--transition);
   position: relative;
+  border-bottom: 1px solid var(--border-secondary)
 }
 
 .card:hover {

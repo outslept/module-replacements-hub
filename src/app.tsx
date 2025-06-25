@@ -1,3 +1,5 @@
+import { useWindowVirtualizer } from "@tanstack/react-virtual";
+import { useEffect, useState } from "preact/hooks";
 import { ModuleCard } from "./components/module-card";
 import { SearchAndFilters } from "./components/search-and-filters";
 import { useFilters } from "./hooks/use-filters";
@@ -8,6 +10,37 @@ export const App = () => {
   const { replacements, refetch } = useModuleData();
   const { filters, categories, types, filteredReplacements, setFilters } =
     useFilters(replacements);
+
+  const getColumnsCount = () => {
+    if (typeof window === "undefined") return 3;
+    const width = window.innerWidth;
+    if (width < 768) return 1;
+    if (width < 1200) return 2;
+    return 3;
+  };
+
+  const [columnsCount, setColumnsCount] = useState(getColumnsCount());
+
+  useEffect(() => {
+    const handleResize = () => {
+      setColumnsCount(getColumnsCount());
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  const rowsCount = Math.ceil(filteredReplacements.length / columnsCount);
+
+  const virtualizer = useWindowVirtualizer({
+    count: rowsCount,
+    estimateSize: () => 500,
+    overscan: 2,
+    measureElement: (element) => {
+      if (!element) return 500;
+      return element.getBoundingClientRect().height;
+    },
+  });
 
   return (
     <div className="app">
@@ -92,13 +125,44 @@ export const App = () => {
             <p>Try adjusting your search or filters</p>
           </div>
         ) : (
-          <div className="modules-grid">
-            {filteredReplacements.map((replacement, index) => (
-              <ModuleCard
-                key={`${replacement.moduleName}-${index}`}
-                replacement={replacement}
-              />
-            ))}
+          <div
+            className="modules-grid-virtualized"
+            style={{
+              height: `${virtualizer.getTotalSize()}px`,
+              position: "relative",
+            }}
+          >
+            {virtualizer.getVirtualItems().map((virtualRow) => {
+              const startIndex = virtualRow.index * columnsCount;
+              const endIndex = Math.min(
+                startIndex + columnsCount,
+                filteredReplacements.length,
+              );
+              const rowItems = filteredReplacements.slice(startIndex, endIndex);
+
+              return (
+                <div
+                  key={virtualRow.key}
+                  data-index={virtualRow.index}
+                  ref={virtualizer.measureElement}
+                  className="modules-grid-row"
+                  style={{
+                    position: "absolute",
+                    top: 0,
+                    left: 0,
+                    width: "100%",
+                    transform: `translateY(${virtualRow.start}px)`,
+                  }}
+                >
+                  {rowItems.map((replacement, index) => (
+                    <ModuleCard
+                      key={`${replacement.moduleName}-${startIndex + index}`}
+                      replacement={replacement}
+                    />
+                  ))}
+                </div>
+              );
+            })}
           </div>
         )}
       </main>
