@@ -10,6 +10,7 @@
     "prepare": "simple-git-hooks"
   },
   "dependencies": {
+    "@tanstack/react-virtual": "^3.13.11",
     "preact": "^10.26.9"
   },
   "devDependencies": {
