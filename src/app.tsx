@@ -88,13 +88,6 @@ export const App = () => {
 
         {filteredReplacements.length === 0 ? (
           <div className="no-results">
-            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-              />
-            </svg>
             <h3>No modules found</h3>
             <p>Try adjusting your search or filters</p>
           </div>
